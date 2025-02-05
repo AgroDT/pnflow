@@ -47,3 +47,19 @@ endif()
 if(USE_BUNDLED_ZLIB)
     add_library(ZLIB::ZLIB ALIAS zlib)
 endif()
+
+if(MINGW)
+    cmake_path(GET CMAKE_CXX_COMPILER PARENT_PATH DIRECTORIES)
+    foreach(LIB HYPRE::HYPRE ZLIB::ZLIB TIFF::TIFF)
+        get_target_property(_LIB_FILE HYPRE::HYPRE IMPORTED_LOCATION)
+        cmake_path(GET _LIB_FILE PARENT_PATH _LIB_DIR)
+        cmake_path(REPLACE_FILENAME _LIB_DIR bin)
+        list(APPEND DIRECTORIES "${_LIB_DIR}")
+    endforeach()
+    list(REMOVE_DUPLICATES DIRECTORIES)
+    set(RUNTIME_DEPENDENCIES RUNTIME_DEPENDENCIES
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+        DIRECTORIES ${DIRECTORIES}
+    )
+endif()
